@@ -36,7 +36,7 @@ pub fn setup_menu(app: &AppHandle) -> tauri::Result<()> {
             .build(app)?)
         .separator()
         .item(&MenuItemBuilder::with_id("view-zoom-in", "Zoom In")
-            .accelerator("CmdOrCtrl+=")
+            .accelerator("CmdOrCtrl+Shift+=")
             .build(app)?)
         .item(&MenuItemBuilder::with_id("view-zoom-out", "Zoom Out")
             .accelerator("CmdOrCtrl+-")
