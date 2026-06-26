@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icon.png?v=3" width="120" alt="VoltYTM Logo" />
+  <img src="assets/logo.png" width="120" alt="VoltYTM Logo" />
 </p>
 
 <h1 align="center">VoltYTM</h1>
