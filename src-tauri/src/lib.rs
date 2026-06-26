@@ -11,7 +11,7 @@ mod tray;
 mod updater;
 mod window;
 
-use tauri::{AppHandle, Manager};
+use tauri::Manager;
 use tracing_subscriber::EnvFilter;
 
 pub fn run(start_minimized: bool) {
@@ -59,7 +59,7 @@ pub fn run(start_minimized: bool) {
             // Create main window
             if let Err(e) = window::setup_main_window(&handle) {
                 tracing::error!("Failed to create main window: {e}");
-                return Err(e);
+                return Err(e.into());
             }
 
             // Start minimized if launched with --minimized

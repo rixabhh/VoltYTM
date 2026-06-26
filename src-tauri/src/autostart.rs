@@ -1,6 +1,5 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
 
 const APP_NAME: &str = "VoltYTM";
 const APP_ID: &str = "com.rixabhh.voltytm";
@@ -151,18 +150,18 @@ pub fn disable_autostart() -> Result<()> {
 }
 
 #[cfg(target_os = "macos")]
-fn launch_agent_path() -> PathBuf {
+fn launch_agent_path() -> std::path::PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-    PathBuf::from(home)
+    std::path::PathBuf::from(home)
         .join("Library")
         .join("LaunchAgents")
         .join(format!("{APP_ID}.plist"))
 }
 
 #[cfg(target_os = "linux")]
-fn autostart_desktop_path() -> PathBuf {
+fn autostart_desktop_path() -> std::path::PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-    PathBuf::from(home)
+    std::path::PathBuf::from(home)
         .join(".config")
         .join("autostart")
         .join(format!("{APP_ID}.desktop"))
