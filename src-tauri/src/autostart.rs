@@ -1,7 +1,6 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use tauri::AppHandle;
 
 const APP_NAME: &str = "VoltYTM";
 const APP_ID: &str = "com.rixabhh.voltytm";

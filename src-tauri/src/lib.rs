@@ -42,19 +42,12 @@ pub fn run(start_minimized: bool) {
         .setup(|app| {
             let handle = app.handle().clone();
 
-            // Start proxy in background — don't block the setup closure
+            // Start proxy in background
             let proxy_handle = handle.clone();
             tauri::async_runtime::spawn(async move {
                 match proxy::start().await {
                     Ok(proxy) => {
-                        let proxy_url = proxy.proxy_url();
                         proxy_handle.manage(proxy);
-
-                        // Set proxy URL on the main window if it exists
-                        if let Some(window) = proxy_handle.get_webview_window("main") {
-                            let _ = window.set_proxy_url(proxy_url);
-                        }
-
                         tracing::info!("Ad-block proxy started");
                     }
                     Err(e) => {
@@ -63,63 +56,68 @@ pub fn run(start_minimized: bool) {
                 }
             });
 
-            // Configure the main window
-            window::setup_main_window(&handle, None)?;
+            // Create main window
+            if let Err(e) = window::setup_main_window(&handle) {
+                tracing::error!("Failed to create main window: {e}");
+                return Err(e);
+            }
 
-            // Start minimized if launched with --minimized flag
+            // Start minimized if launched with --minimized
             if start_minimized {
                 if let Some(window) = handle.get_webview_window("main") {
                     let _ = window.hide();
                 }
             }
 
-            // Set up tray
+            // System tray
             if let Err(e) = tray::setup_tray(&handle) {
-                tracing::warn!("Failed to set up tray: {e}");
+                tracing::warn!("Tray setup failed: {e}");
             }
 
-            // Set up menu
+            // Native menu
             if let Err(e) = menu::setup_menu(&handle) {
-                tracing::warn!("Failed to set up menu: {e}");
+                tracing::warn!("Menu setup failed: {e}");
             }
 
-            // Register global shortcuts
+            // Global media shortcuts
             if let Err(e) = shortcuts::register_defaults(&handle) {
-                tracing::warn!("Failed to register shortcuts: {e}");
+                tracing::warn!("Shortcuts failed: {e}");
             }
 
-            // Initialize plugins
+            // Plugin initialization
             if let Err(e) = plugins::initialize(&handle) {
-                tracing::warn!("Failed to initialize plugins: {e}");
+                tracing::warn!("Plugins init failed: {e}");
             }
 
-            // Initialize session persistence
+            // Cookie session persistence
             if let Err(e) = session::initialize(&handle) {
-                tracing::warn!("Failed to initialize session: {e}");
+                tracing::warn!("Session init failed: {e}");
             }
 
-            // Check for updates in background
+            // Background update check
             let updater_handle = handle.clone();
             tauri::async_runtime::spawn(async move {
                 updater::check_for_updates(updater_handle).await;
             });
 
-            // Close to tray instead of quitting
-            let close_handle = handle.clone();
-            handle.on_window_event("main", move |window, event| {
-                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                    api.prevent_close();
-                    let _ = window.hide();
-                    let h = close_handle.clone();
-                    tauri::async_runtime::spawn(async move {
-                        if let Err(e) = session::persist_cookies_for_app(&h).await {
-                            tracing::warn!("Failed to persist cookies on close: {e}");
+            // Close to tray — persist cookies and hide window
+            if let Some(window) = handle.get_webview_window("main") {
+                let close_handle = handle.clone();
+                window.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                        api.prevent_close();
+                        let h = close_handle.clone();
+                        tauri::async_runtime::spawn(async move {
+                            let _ = session::persist_cookies_for_app(&h).await;
+                        });
+                        if let Some(w) = h.get_webview_window("main") {
+                            let _ = w.hide();
                         }
-                    });
-                }
-            });
+                    }
+                });
+            }
 
-            tracing::info!("VoltYTM started successfully");
+            tracing::info!("VoltYTM started");
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
