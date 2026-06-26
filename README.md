@@ -110,6 +110,129 @@ VoltYTM ships with 23 built-in plugins. All can be toggled on or off from the se
 | Unobtrusive Player | Dim player bar when idle | Off |
 | Theming | Dark, AMOLED, Catppuccin, Gruvbox | On |
 
+## Creating Plugins
+
+VoltYTM has a plugin system that lets you add custom features. Plugins run as JavaScript injected into the YouTube Music page, so they have full access to the DOM and can interact with the Rust backend via Tauri IPC.
+
+### Plugin Structure
+
+Each plugin is a single object inside the `rendererPlugins` map in `src-tauri/scripts/init.js`:
+
+```javascript
+rendererPlugins: {
+  myPlugin: {
+    start(config) {
+      // config contains the user's settings for this plugin
+      if (!config.enabled) return;
+
+      // Your plugin code here
+      const interval = setInterval(() => {
+        // Do something every second
+      }, 1000);
+
+      // Return a cleanup function (called when plugin is disabled)
+      return () => clearInterval(interval);
+    },
+  },
+}
+```
+
+### Adding a Plugin
+
+1. Open `src-tauri/scripts/init.js`
+2. Add your plugin to the `rendererPlugins` object
+3. Add a default config entry in `src-tauri/src/commands.rs` inside the `default_config()` function
+4. Rebuild: `pnpm tauri dev`
+
+### Plugin Capabilities
+
+**DOM access** — Your plugin runs in the YouTube Music page context. You can read and modify any element:
+
+```javascript
+// Read the current track
+const title = document.querySelector('.title.ytmusic-player-bar')?.textContent;
+const artist = document.querySelector('.subtitle.ytmusic-player-bar a')?.textContent;
+
+// Click buttons
+document.querySelector('.next-button')?.click();
+
+// Observe changes
+const observer = new MutationObserver(() => { /* ... */ });
+observer.observe(document.body, { childList: true, subtree: true });
+```
+
+**Tauri IPC** — Call Rust commands from your plugin:
+
+```javascript
+// Call a Tauri command
+const result = await invoke('my_command', { payload: { key: 'value' } });
+
+// Listen for events from Rust
+window.__TAURI__?.event?.listen('my-event', (event) => {
+  console.log(event.payload);
+});
+```
+
+**CSS injection** — Add custom styles:
+
+```javascript
+const style = document.createElement('style');
+style.textContent = `
+  .my-custom-class {
+    background: red;
+    border-radius: 8px;
+  }
+`;
+document.head.appendChild(style);
+
+// Clean up later
+style.remove();
+```
+
+**Audio analysis** — Access the Web Audio API:
+
+```javascript
+const video = document.querySelector('video');
+const audioCtx = new AudioContext();
+const source = audioCtx.createMediaElementSource(video);
+const analyser = audioCtx.createAnalyser();
+source.connect(analyser);
+analyser.connect(audioCtx.destination);
+
+// Read frequency data
+const data = new Uint8Array(analyser.frequencyBinCount);
+analyser.getByteFrequencyData(data);
+```
+
+### Plugin Config
+
+Each plugin can have its own config stored in the app settings. Add defaults in `commands.rs`:
+
+```rust
+"myPlugin": {
+    "enabled": false,
+    "myOption": "default-value"
+}
+```
+
+Access config in your plugin via the `config` parameter passed to `start()`. Users can toggle plugins on/off from the settings panel.
+
+### Helper Utilities
+
+Available in `init.js`:
+
+```javascript
+// Read current track info
+const track = readTrackSnapshot();
+// Returns: { title, artist, album } or null
+
+// Read text from multiple selectors (fallback chain)
+const text = readText(['.selector-1', '.selector-2']);
+
+// Tauri IPC wrapper
+await invoke('command_name', { payload: data });
+```
+
 ## Development
 
 ### Prerequisites
