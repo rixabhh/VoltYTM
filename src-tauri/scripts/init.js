@@ -265,7 +265,22 @@
     return undefined;
   };
 
+  // Performance: debounce utility
+  const debounce = (fn, ms) => {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), ms);
+    };
+  };
+
+  // Performance: cached track snapshot
+  let _trackCache = null;
+  let _trackCacheTime = 0;
   const readTrackSnapshot = () => {
+    const now = Date.now();
+    if (_trackCache && now - _trackCacheTime < 1000) return _trackCache;
+
     const title = readText([
       'ytmusic-player-bar .title',
       '.ytmusic-player-bar .title',
@@ -277,7 +292,12 @@
       '.content-info-wrapper .byline a',
     ]);
     if (!title || !artist) return null;
-    return {
+    if (!title || !artist) {
+      _trackCache = null;
+      return null;
+    }
+
+    _trackCache = {
       title,
       artist,
       album: readText([
@@ -285,6 +305,8 @@
         '.subtitle a:nth-of-type(2)',
       ]),
     };
+    _trackCacheTime = now;
+    return _trackCache;
   };
 
   const rendererPlugins = {

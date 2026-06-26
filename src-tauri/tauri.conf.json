@@ -12,7 +12,7 @@
   "app": {
     "windows": [],
     "security": {
-      "csp": null
+      "csp": "default-src 'self' https://music.youtube.com https://*.youtube.com https://*.googlevideo.com https://*.ytimg.com https://*.ggpht.com https://*.google.com https://*.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://music.youtube.com https://*.youtube.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.youtube.com https://*.ytimg.com https://*.googlevideo.com https://*.ggpht.com https://*.google.com https://*.gstatic.com https://i.ytimg.com; media-src 'self' blob: https://*.youtube.com https://*.googlevideo.com; connect-src 'self' http://127.0.0.1:* https://*.youtube.com https://*.googlevideo.com https://lrclib.net https://music.163.com https://api.lyrics.ovh https://sponsor.ajay.app; font-src 'self' https://fonts.gstatic.com; frame-src https://www.youtube.com https://music.youtube.com"
     },
     "trayIcon": {
       "iconPath": "icons/tray-icon.png",

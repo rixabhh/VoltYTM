@@ -290,6 +290,14 @@ pub struct LyricsResponse {
 
 #[tauri::command]
 pub async fn fetch_lyrics(payload: LyricsRequest) -> Result<LyricsResponse, String> {
+    // Input length limits
+    if payload.artist.len() > 200 || payload.track.len() > 200 {
+        return Err("Artist or track name too long".into());
+    }
+    if payload.artist.is_empty() || payload.track.is_empty() {
+        return Err("Artist and track name are required".into());
+    }
+
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(5))
         .build()
@@ -493,14 +501,32 @@ pub async fn download_track(
     let embed_art = payload.embed_art.unwrap_or(true);
     let pattern = payload.filename_pattern.unwrap_or_else(|| "{artist} - {title}".to_string());
 
+    // Validate format against allowlist
+    let allowed_formats = ["mp3", "flac", "aac", "ogg", "wav"];
+    if !allowed_formats.contains(&format.as_str()) {
+        return Err(format!("Unsupported format: {format}. Allowed: {}", allowed_formats.join(", ")));
+    }
+
     let output_dir = match payload.output_dir {
-        Some(dir) => std::path::PathBuf::from(dir),
+        Some(dir) => {
+            let path = std::path::PathBuf::from(&dir);
+            // Prevent path traversal — canonicalize and ensure no ".." components
+            if dir.contains("..") || dir.contains('\0') {
+                return Err("Invalid output directory".into());
+            }
+            path
+        }
         None => app
             .path()
             .download_dir()
             .map_err(|e| e.to_string())?
             .join("VoltYTM"),
     };
+
+    // Validate video_id — only allow alphanumeric, hyphens, underscores
+    if !payload.video_id.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_') {
+        return Err("Invalid video ID".into());
+    }
 
     std::fs::create_dir_all(&output_dir).map_err(|e| e.to_string())?;
 
