@@ -98,4 +98,9 @@ export const bridge = {
     embedArt?: boolean;
     filenamePattern?: string;
   }) => tauriInvoke<string>('download_track', { payload }),
+
+  getAutostart: () => tauriInvoke<{ enabled: boolean }>('get_autostart_status'),
+
+  setAutostart: (enabled: boolean) =>
+    tauriInvoke<{ enabled: boolean }>('set_autostart', { enabled }),
 };

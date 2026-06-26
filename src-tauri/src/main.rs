@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    voltytm_lib::run();
+    let start_minimized = std::env::args().any(|arg| arg == "--minimized");
+    voltytm_lib::run(start_minimized);
 }

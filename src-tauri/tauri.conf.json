@@ -10,13 +10,27 @@
     "beforeBuildCommand": "pnpm run build"
   },
   "app": {
-    "windows": [],
+    "windows": [
+      {
+        "label": "main",
+        "title": "VoltYTM",
+        "url": "https://music.youtube.com",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "visible": true,
+        "center": true,
+        "decorations": false
+      }
+    ],
     "security": {
       "csp": null
     },
     "trayIcon": {
       "iconPath": "icons/tray-icon.png",
-      "iconAsTemplate": true,
+      "iconAsTemplate": false,
       "menuOnLeftClick": false
     }
   },

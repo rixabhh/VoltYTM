@@ -82,7 +82,7 @@ async fn restore_cookies(app: &AppHandle) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn persist_cookies_for_app(app: &AppHandle) -> anyhow::Result<Vec<SerializedCookie>> {
+pub(crate) async fn persist_cookies_for_app(app: &AppHandle) -> anyhow::Result<Vec<SerializedCookie>> {
     let cookies = read_webview_cookies(app).await?;
     let path = session_path(app)?;
     if let Some(parent) = path.parent() {

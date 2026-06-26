@@ -1,4 +1,5 @@
 mod adblock;
+mod autostart;
 mod commands;
 mod discord;
 mod menu;
@@ -10,13 +11,13 @@ mod tray;
 mod updater;
 mod window;
 
-use tauri::Manager;
+use tauri::{AppHandle, Manager};
 use tracing_subscriber::EnvFilter;
 
-pub fn run() {
+pub fn run(start_minimized: bool) {
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn")),
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
         )
         .init();
 
@@ -28,24 +29,101 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec!["--minimized"]),
+        ))
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
         .setup(|app| {
             let handle = app.handle().clone();
-            let proxy = tauri::async_runtime::block_on(proxy::start())?;
-            let proxy_url = proxy.proxy_url();
-            handle.manage(proxy);
 
-            window::setup_main_window(&handle, Some(proxy_url))?;
-            tray::setup_tray(&handle)?;
-            menu::setup_menu(&handle)?;
-            shortcuts::register_defaults(&handle)?;
-            plugins::initialize(&handle)?;
-            session::initialize(&handle)?;
+            // Start proxy in background — don't block the setup closure
+            let proxy_handle = handle.clone();
+            tauri::async_runtime::spawn(async move {
+                match proxy::start().await {
+                    Ok(proxy) => {
+                        let proxy_url = proxy.proxy_url();
+                        proxy_handle.manage(proxy);
 
+                        // Set proxy URL on the main window if it exists
+                        if let Some(window) = proxy_handle.get_webview_window("main") {
+                            let _ = window.set_proxy_url(proxy_url);
+                        }
+
+                        tracing::info!("Ad-block proxy started");
+                    }
+                    Err(e) => {
+                        tracing::warn!("Failed to start ad-block proxy: {e}");
+                    }
+                }
+            });
+
+            // Configure the main window
+            window::setup_main_window(&handle, None)?;
+
+            // Start minimized if launched with --minimized flag
+            if start_minimized {
+                if let Some(window) = handle.get_webview_window("main") {
+                    let _ = window.hide();
+                }
+            }
+
+            // Set up tray
+            if let Err(e) = tray::setup_tray(&handle) {
+                tracing::warn!("Failed to set up tray: {e}");
+            }
+
+            // Set up menu
+            if let Err(e) = menu::setup_menu(&handle) {
+                tracing::warn!("Failed to set up menu: {e}");
+            }
+
+            // Register global shortcuts
+            if let Err(e) = shortcuts::register_defaults(&handle) {
+                tracing::warn!("Failed to register shortcuts: {e}");
+            }
+
+            // Initialize plugins
+            if let Err(e) = plugins::initialize(&handle) {
+                tracing::warn!("Failed to initialize plugins: {e}");
+            }
+
+            // Initialize session persistence
+            if let Err(e) = session::initialize(&handle) {
+                tracing::warn!("Failed to initialize session: {e}");
+            }
+
+            // Check for updates in background
             let updater_handle = handle.clone();
             tauri::async_runtime::spawn(async move {
                 updater::check_for_updates(updater_handle).await;
             });
 
+            // Close to tray instead of quitting
+            let handle_clone = handle.clone();
+            handle.listen("tauri://close-requested", move |_event| {
+                if let Some(window) = handle_clone.get_webview_window("main") {
+                    let _ = window.hide();
+                }
+            });
+
+            // Persist cookies on close
+            let close_handle = handle.clone();
+            handle.listen("tauri://close-requested", move |_event| {
+                let h = close_handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Err(e) = session::persist_cookies_for_app(&h).await {
+                        tracing::warn!("Failed to persist cookies on close: {e}");
+                    }
+                });
+            });
+
+            tracing::info!("VoltYTM started successfully");
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -68,6 +146,8 @@ pub fn run() {
             commands::get_theme_css,
             commands::fetch_lyrics,
             commands::download_track,
+            autostart::get_autostart_status,
+            autostart::set_autostart,
             session::get_ytm_cookies,
             session::persist_cookies,
         ])
