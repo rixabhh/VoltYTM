@@ -27,7 +27,6 @@ pub fn setup_main_window(app: &AppHandle, proxy_url: Option<Url>) -> Result<()> 
         .min_inner_size(800.0, 600.0)
         .resizable(true)
         .decorations(false)
-        .transparent(false)
         .center()
         .user_agent(CHROME_USER_AGENT)
         .initialization_script(INIT_SCRIPT)

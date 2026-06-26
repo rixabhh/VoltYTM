@@ -6,8 +6,6 @@ use tauri::{
 pub fn setup_menu(app: &AppHandle) -> tauri::Result<()> {
     #[cfg(target_os = "macos")]
     {
-        use tauri::menu::PredefinedMenuItem;
-
         let app_menu = SubmenuBuilder::new(app, "VoltYTM")
             .about(Some(tauri::menu::AboutMetadata {
                 name: Some("VoltYTM".to_string()),
