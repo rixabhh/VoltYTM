@@ -1,0 +1,58 @@
+/* VoltYTM Gruvbox Dark Theme */
+:root {
+  --gb-bg: #282828;
+  --gb-bg1: #3c3836;
+  --gb-bg2: #504945;
+  --gb-fg: #ebdbb2;
+  --gb-fg1: #fbf1c7;
+  --gb-red: #cc241d;
+  --gb-green: #98971a;
+  --gb-yellow: #d79921;
+  --gb-blue: #458588;
+  --gb-purple: #b16286;
+  --gb-aqua: #689d6a;
+  --gb-orange: #d65d0e;
+}
+
+body,
+ytcp-video-details-container,
+ytmusic-responsive-list-item-renderer,
+ytmusic-player-page,
+tp-yt-paper-dialog,
+ytmusic-section-list-renderer,
+#contents {
+  background-color: var(--gb-bg) !important;
+  color: var(--gb-fg) !important;
+}
+
+ytmusicь nav,
+ytmusicь sidebar,
+#guide {
+  background-color: var(--gb-bg1) !important;
+}
+
+ytmusicь a,
+ytmusic-player-bar .title,
+ytmusic-player-bar .subtitle,
+.content-info-wrapper .title {
+  color: var(--gb-fg1) !important;
+}
+
+tp-yt-paper-slider#progress-bar {
+  --paper-slider-active-color: var(--gb-orange) !important;
+}
+
+ytmusicь chip-cloud-chip {
+  background-color: var(--gb-bg2) !important;
+  color: var(--gb-fg) !important;
+}
+
+ytmusicь .ytmusicь-chip-cloud-chip-renderer[aria-selected="true"] {
+  background-color: var(--gb-bg1) !important;
+  border-color: var(--gb-yellow) !important;
+  color: var(--gb-fg1) !important;
+}
+
+#nav-container-background {
+  background-color: var(--gb-bg) !important;
+}

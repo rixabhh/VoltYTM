@@ -1,0 +1,10 @@
+packages: []
+
+allowBuilds:
+  esbuild: true
+
+engineStrict: true
+minimumReleaseAge: 360
+
+onlyBuiltDependencies:
+  - esbuild

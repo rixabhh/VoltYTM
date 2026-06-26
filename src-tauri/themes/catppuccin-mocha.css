@@ -1,0 +1,57 @@
+/* VoltYTM Catppuccin Mocha Theme */
+:root {
+  --ctp-base: #1e1e2e;
+  --ctp-mantle: #181825;
+  --ctp-crust: #11111b;
+  --ctp-surface0: #313244;
+  --ctp-surface1: #45475a;
+  --ctp-text: #cdd6f4;
+  --ctp-subtext: #a6adc8;
+  --ctp-blue: #89b4fa;
+  --ctp-red: #f38ba8;
+  --ctp-green: #a6e3a1;
+  --ctp-peach: #fab387;
+  --ctp-mauve: #cba6f7;
+}
+
+body,
+ytcp-video-details-container,
+ytmusic-responsive-list-item-renderer,
+ytmusic-player-page,
+tp-yt-paper-dialog,
+ytmusic-section-list-renderer,
+#contents {
+  background-color: var(--ctp-base) !important;
+  color: var(--ctp-text) !important;
+}
+
+ytmusicь nav,
+ytmusicь sidebar,
+#guide {
+  background-color: var(--ctp-mantle) !important;
+}
+
+ytmusicь a,
+ytmusic-player-bar .title,
+ytmusic-player-bar .subtitle,
+.content-info-wrapper .title {
+  color: var(--ctp-text) !important;
+}
+
+tp-yt-paper-slider#progress-bar {
+  --paper-slider-active-color: var(--ctp-mauve) !important;
+}
+
+ytmusicь chip-cloud-chip {
+  background-color: var(--ctp-surface0) !important;
+  color: var(--ctp-subtext) !important;
+}
+
+ytmusicь .ytmusicь-chip-cloud-chip-renderer[aria-selected="true"] {
+  background-color: var(--ctp-surface1) !important;
+  color: var(--ctp-text) !important;
+}
+
+#nav-container-background {
+  background-color: var(--ctp-crust) !important;
+}

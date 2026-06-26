@@ -1,0 +1,57 @@
+name: Bug Report
+description: Report a VoltYTM bug
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: checkboxes
+    attributes:
+      label: Preflight Checklist
+      options:
+        - label: I use the latest VoltYTM release or current main branch.
+          required: true
+        - label: I searched existing issues for the same problem.
+          required: true
+        - label: I can reproduce whether the issue is VoltYTM-specific or also happens in music.youtube.com.
+          required: true
+  - type: input
+    attributes:
+      label: VoltYTM Version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - macOS
+        - Ubuntu
+        - Other Linux
+        - Other
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: OS Version
+      placeholder: "Windows 11 24H2, macOS 15, Ubuntu 24.04"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction Steps
+      placeholder: "1. Launch VoltYTM\n2. Enable ...\n3. Observe ..."
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Actual Behavior
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional Context

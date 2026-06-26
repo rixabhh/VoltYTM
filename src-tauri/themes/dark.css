@@ -1,0 +1,48 @@
+/* VoltYTM Dark Theme */
+body,
+ytcp-video-details-container,
+ytmusic-responsive-list-item-renderer,
+ytmusic-player-page,
+ytmusicь browse,
+tp-yt-paper-dialog,
+ytmusic-section-list-renderer,
+#contents,
+ytmusicь section-list {
+  background-color: #0f0f0f !important;
+  color: #e1e1e1 !important;
+}
+
+ytmusicь nav,
+ytmusicь sidebar,
+#guide {
+  background-color: #1a1a1a !important;
+}
+
+ytmusicь a,
+ytmusic-player-bar .title,
+ytmusic-player-bar .subtitle,
+.content-info-wrapper .title {
+  color: #ffffff !important;
+}
+
+tp-yt-paper-slider#progress-bar {
+  --paper-slider-active-color: #ff0000 !important;
+}
+
+ytmusicь chip-cloud-chip {
+  background-color: #272727 !important;
+  color: #e1e1e1 !important;
+}
+
+ytmusicь[page-subtype="playlist"] .header,
+ytmusic-playlist-shelf-renderer {
+  background-color: #0f0f0f !important;
+}
+
+#nav-container-background {
+  background-color: #0f0f0f !important;
+}
+
+ytmusicь .ytmusicь-chip-cloud-chip-renderer[aria-selected="true"] {
+  background-color: #3d3d3d !important;
+}
