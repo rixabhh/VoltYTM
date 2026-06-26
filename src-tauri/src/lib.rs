@@ -39,7 +39,7 @@ pub fn run(start_minimized: bool) {
                 let _ = window.set_focus();
             }
         }))
-        .setup(|app| {
+        .setup(move |app| {
             let handle = app.handle().clone();
 
             // Start proxy in background
@@ -106,11 +106,12 @@ pub fn run(start_minimized: bool) {
                 window.on_window_event(move |event| {
                     if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                         api.prevent_close();
-                        let h = close_handle.clone();
+                        let h1 = close_handle.clone();
                         tauri::async_runtime::spawn(async move {
-                            let _ = session::persist_cookies_for_app(&h).await;
+                            let _ = session::persist_cookies_for_app(&h1).await;
                         });
-                        if let Some(w) = h.get_webview_window("main") {
+                        let h2 = close_handle.clone();
+                        if let Some(w) = h2.get_webview_window("main") {
                             let _ = w.hide();
                         }
                     }
