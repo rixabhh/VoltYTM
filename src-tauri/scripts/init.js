@@ -94,6 +94,67 @@
 
   const shouldBlock = (input) => classifyUrl(input).action === 'block';
 
+  // Accessibility: global styles
+  const A11Y_STYLE_ID = '__VOLTYTM_A11Y__';
+  const a11yStyle = document.createElement('style');
+  a11yStyle.id = A11Y_STYLE_ID;
+  a11yStyle.textContent = `
+    /* Focus ring for all VoltYTM buttons */
+    #voltytm-pip-btn:focus-visible,
+    #voltytm-dl-btn:focus-visible,
+    #voltytm-sleep-btn:focus-visible,
+    #voltytm-adev-btn:focus-visible,
+    #voltytm-speed-btn:focus-visible,
+    #voltytm-mini-btn:focus-visible,
+    #voltytm-nav button:focus-visible {
+      outline: 2px solid #4fd1b3;
+      outline-offset: 2px;
+    }
+
+    /* Reduced motion: disable animations */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* High contrast mode */
+    @media (prefers-contrast: high) {
+      #voltytm-pip-btn,
+      #voltytm-dl-btn,
+      #voltytm-sleep-btn,
+      #voltytm-adev-btn,
+      #voltytm-speed-btn,
+      #voltytm-mini-btn,
+      #voltytm-nav button {
+        border-width: 2px !important;
+        border-color: white !important;
+      }
+    }
+  `;
+  document.head.appendChild(a11yStyle);
+
+  // Escape key: close any open panel
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('#voltytm-speed-panel, #voltytm-sleep-menu, #voltytm-adev-menu, #voltytm-dl-dialog, #voltytm-dl-overlay').forEach((el) => el.remove());
+    }
+  });
+
+  // Ctrl+K: focus search bar
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      const searchInput = document.querySelector('input#input, input[placeholder*="Search"], input[aria-label*="Search"]');
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+      }
+    }
+  });
+
   window.__APP__ = {
     name: 'VoltYTM',
     version: '1.0.0',

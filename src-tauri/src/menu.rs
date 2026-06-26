@@ -35,6 +35,10 @@ pub fn setup_menu(app: &AppHandle) -> tauri::Result<()> {
             .accelerator("CmdOrCtrl+Shift+I")
             .build(app)?)
         .separator()
+        .item(&MenuItemBuilder::with_id("view-search", "Focus Search")
+            .accelerator("CmdOrCtrl+K")
+            .build(app)?)
+        .separator()
         .item(&MenuItemBuilder::with_id("view-zoom-in", "Zoom In")
             .accelerator("CmdOrCtrl+Shift+=")
             .build(app)?)
@@ -95,6 +99,7 @@ pub fn setup_menu(app: &AppHandle) -> tauri::Result<()> {
             "view-zoom-in" => Some("document.body.style.zoom = (parseFloat(document.body.style.zoom || '1') + 0.1).toString()"),
             "view-zoom-out" => Some("document.body.style.zoom = Math.max(0.5, parseFloat(document.body.style.zoom || '1') - 0.1).toString()"),
             "view-zoom-reset" => Some("document.body.style.zoom = '1'"),
+            "view-search" => Some("document.querySelector('input#input, input[placeholder*=\"Search\"], input[aria-label*=\"Search\"]')?.focus()"),
             "pb-pip" => Some("document.querySelector('video')?.requestPictureInPicture?.()"),
             _ => None,
         };
