@@ -4,22 +4,24 @@ use tauri::{
 };
 
 pub fn setup_menu(app: &AppHandle) -> tauri::Result<()> {
-    let plugins_menu = SubmenuBuilder::new(app, "Plugins")
-        .item(&MenuItemBuilder::with_id("plugin-sponsorblock", "SponsorBlock").build(app)?)
-        .item(&MenuItemBuilder::with_id("plugin-lastfm", "Last.fm Scrobbling").build(app)?)
-        .item(&MenuItemBuilder::with_id("plugin-discord", "Discord Rich Presence").build(app)?)
+    let playback_menu = SubmenuBuilder::new(app, "Playback")
+        .item(&MenuItemBuilder::with_id("pb-speed", "Speed...").build(app)?)
+        .item(&MenuItemBuilder::with_id("pb-crossfade", "Crossfade").build(app)?)
+        .item(&MenuItemBuilder::with_id("pb-normalize", "Normalize Volume").build(app)?)
+        .item(&MenuItemBuilder::with_id("pb-skip-silence", "Skip Silence").build(app)?)
         .separator()
-        .item(&MenuItemBuilder::with_id("plugin-settings", "Plugin Settings...").build(app)?)
+        .item(&MenuItemBuilder::with_id("pb-sleep", "Sleep Timer").build(app)?)
+        .item(&MenuItemBuilder::with_id("pb-pip", "Picture in Picture").build(app)?)
         .build()?;
 
-    let options_menu = SubmenuBuilder::new(app, "Options")
-        .item(&MenuItemBuilder::with_id("opt-lyrics", "Synced Lyrics").build(app)?)
-        .item(&MenuItemBuilder::with_id("opt-crossfade", "Crossfade").build(app)?)
-        .item(&MenuItemBuilder::with_id("opt-normalize", "Volume Normalization").build(app)?)
-        .item(&MenuItemBuilder::with_id("opt-skip-silence", "Skip Silence").build(app)?)
+    let extensions_menu = SubmenuBuilder::new(app, "Extensions")
+        .item(&MenuItemBuilder::with_id("ext-sponsorblock", "SponsorBlock").build(app)?)
+        .item(&MenuItemBuilder::with_id("ext-lyrics", "Synced Lyrics").build(app)?)
+        .item(&MenuItemBuilder::with_id("ext-lastfm", "Last.fm").build(app)?)
+        .item(&MenuItemBuilder::with_id("ext-discord", "Discord").build(app)?)
         .separator()
-        .item(&MenuItemBuilder::with_id("opt-autostart", "Start at Login").build(app)?)
-        .item(&MenuItemBuilder::with_id("opt-dnt", "Do Not Track").build(app)?)
+        .item(&MenuItemBuilder::with_id("ext-download", "Download Track").build(app)?)
+        .item(&MenuItemBuilder::with_id("ext-key-bpm", "Key & BPM").build(app)?)
         .build()?;
 
     let view_menu = SubmenuBuilder::new(app, "View")
@@ -30,39 +32,34 @@ pub fn setup_menu(app: &AppHandle) -> tauri::Result<()> {
             .accelerator("CmdOrCtrl+Shift+I")
             .build(app)?)
         .separator()
-        .item(&MenuItemBuilder::with_id("view-speed", "Playback Speed").build(app)?)
         .item(&MenuItemBuilder::with_id("view-theme", "Theme...").build(app)?)
+        .item(&MenuItemBuilder::with_id("view-mini", "Mini Player").build(app)?)
         .separator()
-        .item(&MenuItemBuilder::with_id("view-fullscreen", "Toggle Fullscreen")
+        .item(&MenuItemBuilder::with_id("view-fullscreen", "Fullscreen")
             .accelerator("F11")
             .build(app)?)
         .build()?;
 
-    let nav_menu = SubmenuBuilder::new(app, "Navigation")
-        .item(&MenuItemBuilder::with_id("nav-back", "Go Back")
-            .accelerator("Alt+Left")
-            .build(app)?)
-        .item(&MenuItemBuilder::with_id("nav-forward", "Go Forward")
-            .accelerator("Alt+Right")
-            .build(app)?)
+    let tools_menu = SubmenuBuilder::new(app, "Tools")
+        .item(&MenuItemBuilder::with_id("tools-autostart", "Start on Boot").build(app)?)
+        .item(&MenuItemBuilder::with_id("tools-dnt", "Privacy Mode").build(app)?)
+        .item(&MenuItemBuilder::with_id("tools-audio-device", "Audio Output...").build(app)?)
         .separator()
-        .item(&MenuItemBuilder::with_id("nav-home", "Home").build(app)?)
-        .item(&MenuItemBuilder::with_id("nav-library", "Library").build(app)?)
-        .item(&MenuItemBuilder::with_id("nav-explore", "Explore").build(app)?)
+        .item(&MenuItemBuilder::with_id("tools-shortcuts", "Keyboard Shortcuts").build(app)?)
         .build()?;
 
     let help_menu = SubmenuBuilder::new(app, "Help")
         .item(&MenuItemBuilder::with_id("help-about", "About VoltYTM").build(app)?)
-        .item(&MenuItemBuilder::with_id("help-shortcuts", "Keyboard Shortcuts").build(app)?)
         .separator()
-        .item(&MenuItemBuilder::with_id("help-github", "VoltYTM on GitHub").build(app)?)
+        .item(&MenuItemBuilder::with_id("help-github", "Source Code").build(app)?)
+        .item(&MenuItemBuilder::with_id("help-issues", "Report a Bug").build(app)?)
         .build()?;
 
     let menu = MenuBuilder::new(app)
-        .item(&plugins_menu)
-        .item(&options_menu)
+        .item(&playback_menu)
+        .item(&extensions_menu)
         .item(&view_menu)
-        .item(&nav_menu)
+        .item(&tools_menu)
         .item(&help_menu)
         .build()?;
 
@@ -73,19 +70,7 @@ pub fn setup_menu(app: &AppHandle) -> tauri::Result<()> {
         let js = match id {
             "view-reload" => Some("window.location.reload()"),
             "view-fullscreen" => Some("document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()"),
-            "nav-back" => Some("window.history.back()"),
-            "nav-forward" => Some("window.history.forward()"),
-            "nav-home" => Some("window.location.href = 'https://music.youtube.com'"),
-            "nav-library" => Some("window.location.href = 'https://music.youtube.com/library'"),
-            "nav-explore" => Some("window.location.href = 'https://music.youtube.com/explore'"),
-            "help-github" => {
-                let _ = open::that("https://github.com/rixabhh/VoltYTM");
-                None
-            }
-            "quit" => {
-                app.exit(0);
-                None
-            }
+            "pb-pip" => Some("document.querySelector('video')?.requestPictureInPicture?.()"),
             _ => None,
         };
 
@@ -93,6 +78,13 @@ pub fn setup_menu(app: &AppHandle) -> tauri::Result<()> {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.eval(script);
             }
+        }
+
+        match id {
+            "help-github" => { let _ = open::that("https://github.com/rixabhh/VoltYTM"); }
+            "help-issues" => { let _ = open::that("https://github.com/rixabhh/VoltYTM/issues"); }
+            "quit" => { app.exit(0); }
+            _ => {}
         }
     });
 
