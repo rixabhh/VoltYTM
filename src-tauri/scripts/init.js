@@ -1001,343 +1001,120 @@
       start(config) {
         if (!config.enabled) return;
 
-        const STYLE_ID = '__VOLTYTM_DL__';
+        const DL_STYLE_ID = '__VOLTYTM_DL_CTX__';
         const style = document.createElement('style');
-        style.id = STYLE_ID;
+        style.id = DL_STYLE_ID;
         style.textContent = `
-          #voltytm-dl-btn {
+          .vt-dl-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px;
+            height: 40px;
+            cursor: pointer;
+            font-family: 'YouTube Sans', sans-serif;
+            font-size: 14px;
+            color: #e1e1e1;
+          }
+          .vt-dl-menu-item:hover {
+            background: rgba(255,255,255,0.08);
+          }
+          .vt-dl-menu-item svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            flex-shrink: 0;
+          }
+          .vt-dl-toast {
             position: fixed;
             bottom: 90px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.7);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #fff;
-            font-size: 16px;
-            cursor: pointer;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(8px);
-            transition: all 0.2s;
-          }
-          #voltytm-dl-btn:hover {
-            background: rgba(0,200,80,0.8);
-            transform: scale(1.1);
-          }
-          #voltytm-dl-btn.downloading {
-            animation: voltytm-pulse 1s infinite;
-          }
-          @keyframes voltytm-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-          }
-          #voltytm-dl-dialog {
-            position: fixed;
-            top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            width: 420px;
-            background: #1a1d21;
-            border: 1px solid #333;
-            border-radius: 14px;
-            z-index: 10001;
-            font-family: 'YouTube Sans', sans-serif;
-            color: #e1e1e1;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-          }
-          #voltytm-dl-dialog .dl-header {
-            padding: 18px 20px 12px;
-            border-bottom: 1px solid #2a2a2a;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-          #voltytm-dl-dialog .dl-header h3 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-          }
-          #voltytm-dl-dialog .dl-close {
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-          }
-          #voltytm-dl-dialog .dl-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
-          #voltytm-dl-dialog .dl-body {
-            padding: 16px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-          }
-          #voltytm-dl-dialog .dl-row {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-          }
-          #voltytm-dl-dialog .dl-row label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #888;
-            font-weight: 600;
-          }
-          #voltytm-dl-dialog .dl-row select,
-          #voltytm-dl-dialog .dl-row input {
-            background: #121416;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #e1e1e1;
-            padding: 9px 12px;
-            font-size: 13px;
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.2s;
-          }
-          #voltytm-dl-dialog .dl-row select:focus,
-          #voltytm-dl-dialog .dl-row input:focus {
-            border-color: #4fd1b3;
-          }
-          #voltytm-dl-dialog .dl-row select {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            padding-right: 30px;
-          }
-          #voltytm-dl-dialog .dl-row-inline {
-            display: flex;
-            gap: 10px;
-          }
-          #voltytm-dl-dialog .dl-row-inline .dl-row { flex: 1; }
-          #voltytm-dl-dialog .dl-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            cursor: pointer;
-          }
-          #voltytm-dl-dialog .dl-checkbox input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #4fd1b3;
-          }
-          #voltytm-dl-dialog .dl-track-info {
-            background: #121416;
-            border-radius: 8px;
-            padding: 10px 12px;
-            font-size: 12px;
-            color: #aaa;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-          }
-          #voltytm-dl-dialog .dl-track-info strong {
-            color: #e1e1e1;
-            font-size: 13px;
-          }
-          #voltytm-dl-dialog .dl-footer {
-            padding: 14px 20px;
-            border-top: 1px solid #2a2a2a;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-          }
-          #voltytm-dl-dialog .dl-btn {
-            padding: 9px 22px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-          }
-          #voltytm-dl-dialog .dl-btn-cancel {
-            background: #2a2a2a;
-            color: #aaa;
-          }
-          #voltytm-dl-dialog .dl-btn-cancel:hover { background: #333; color: #fff; }
-          #voltytm-dl-dialog .dl-btn-download {
-            background: #4fd1b3;
-            color: #000;
-          }
-          #voltytm-dl-dialog .dl-btn-download:hover { background: #38c9a3; }
-          #voltytm-dl-dialog .dl-btn-download:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-          #voltytm-dl-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 10000;
-          }
-          #voltytm-dl-toast {
-            position: fixed;
-            bottom: 150px;
-            right: 20px;
-            background: rgba(0,200,80,0.9);
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.88);
             color: #fff;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 8px;
             font-size: 13px;
-            z-index: 10002;
-            animation: voltytm-fadeout 3s forwards;
-          }
-          @keyframes voltytm-fadeout {
-            0% { opacity: 1; }
-            70% { opacity: 1; }
-            100% { opacity: 0; }
+            font-family: system-ui, sans-serif;
+            z-index: 99999;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: vtToast 2.5s forwards;
+            pointer-events: none;
           }
         `;
         document.head.appendChild(style);
 
-        const btn = document.createElement('button');
-        btn.id = 'voltytm-dl-btn';
-        btn.title = 'Download Track';
-        btn.textContent = '\u2B07';
-
-        const getDefaults = () => ({
-          format: config.format || 'mp3',
-          quality: config.quality || '0',
-          outputDir: config.outputDir || '',
-          embedArt: config.embedArt !== false,
-          filenamePattern: config.filenamePattern || '{artist} - {title}',
-        });
-
-        const showDialog = () => {
-          const videoId = new URLSearchParams(window.location.search).get('v');
-          const track = readTrackSnapshot();
-          if (!videoId || !track) return;
-
-          const defaults = getDefaults();
-
-          const overlay = document.createElement('div');
-          overlay.id = 'voltytm-dl-overlay';
-          overlay.addEventListener('click', closeDialog);
-
-          const dialog = document.createElement('div');
-          dialog.id = 'voltytm-dl-dialog';
-          dialog.innerHTML = `
-            <div class="dl-header">
-              <h3>Download Track</h3>
-              <button class="dl-close">&times;</button>
-            </div>
-            <div class="dl-body">
-              <div class="dl-track-info">
-                <strong>${track.title}</strong>
-                <span>${track.artist}${track.album ? ' \u2022 ' + track.album : ''}</span>
-              </div>
-              <div class="dl-row-inline">
-                <div class="dl-row">
-                  <label>Format</label>
-                  <select id="dl-format">
-                    <option value="mp3" ${defaults.format === 'mp3' ? 'selected' : ''}>MP3</option>
-                    <option value="flac" ${defaults.format === 'flac' ? 'selected' : ''}>FLAC (Lossless)</option>
-                    <option value="aac" ${defaults.format === 'aac' ? 'selected' : ''}>AAC</option>
-                    <option value="ogg" ${defaults.format === 'ogg' ? 'selected' : ''}>OGG Vorbis</option>
-                    <option value="wav" ${defaults.format === 'wav' ? 'selected' : ''}>WAV</option>
-                  </select>
-                </div>
-                <div class="dl-row">
-                  <label>Quality</label>
-                  <select id="dl-quality">
-                    <option value="0" ${defaults.quality === '0' ? 'selected' : ''}>Best</option>
-                    <option value="320K" ${defaults.quality === '320K' ? 'selected' : ''}>320 kbps</option>
-                    <option value="192K" ${defaults.quality === '192K' ? 'selected' : ''}>192 kbps</option>
-                    <option value="128K" ${defaults.quality === '128K' ? 'selected' : ''}>128 kbps</option>
-                  </select>
-                </div>
-              </div>
-              <div class="dl-row">
-                <label>Output Directory</label>
-                <input type="text" id="dl-output" placeholder="~/Downloads/VoltYTM" value="${defaults.outputDir}" />
-              </div>
-              <div class="dl-row">
-                <label>Filename Pattern</label>
-                <input type="text" id="dl-pattern" placeholder="{artist} - {title}" value="${defaults.filenamePattern}" />
-              </div>
-              <label class="dl-checkbox">
-                <input type="checkbox" id="dl-art" ${defaults.embedArt ? 'checked' : ''} />
-                Embed album art thumbnail
-              </label>
-            </div>
-            <div class="dl-footer">
-              <button class="dl-btn dl-btn-cancel">Cancel</button>
-              <button class="dl-btn dl-btn-download">Download</button>
-            </div>
-          `;
-
-          document.body.appendChild(overlay);
-          document.body.appendChild(dialog);
-
-          dialog.querySelector('.dl-close').addEventListener('click', closeDialog);
-          dialog.querySelector('.dl-btn-cancel').addEventListener('click', closeDialog);
-
-          dialog.querySelector('.dl-btn-download').addEventListener('click', async () => {
-            const dlBtn = dialog.querySelector('.dl-btn-download');
-            dlBtn.disabled = true;
-            dlBtn.textContent = 'Downloading...';
-
-            const format = dialog.querySelector('#dl-format').value;
-            const quality = dialog.querySelector('#dl-quality').value;
-            const outputDir = dialog.querySelector('#dl-output').value.trim();
-            const filenamePattern = dialog.querySelector('#dl-pattern').value.trim();
-            const embedArt = dialog.querySelector('#dl-art').checked;
-
-            try {
-              const path = await invoke('download_track', {
-                payload: {
-                  videoId,
-                  title: track.title,
-                  artist: track.artist,
-                  album: track.album,
-                  format,
-                  quality,
-                  outputDir: outputDir || undefined,
-                  embedArt,
-                  filenamePattern: filenamePattern || '{artist} - {title}',
-                },
-              });
-              closeDialog();
-              const toast = document.createElement('div');
-              toast.id = 'voltytm-dl-toast';
-              toast.textContent = `Downloaded: ${path}`;
-              document.body.appendChild(toast);
-              setTimeout(() => toast.remove(), 3500);
-            } catch (e) {
-              closeDialog();
-              const toast = document.createElement('div');
-              toast.id = 'voltytm-dl-toast';
-              toast.style.background = 'rgba(200,0,0,0.9)';
-              toast.textContent = `Failed: ${e}`;
-              document.body.appendChild(toast);
-              setTimeout(() => toast.remove(), 4000);
-            }
-          });
+        const getVideoId = () => {
+          const params = new URLSearchParams(window.location.search);
+          return params.get('v') || '';
         };
 
-        function closeDialog() {
-          document.getElementById('voltytm-dl-overlay')?.remove();
-          document.getElementById('voltytm-dl-dialog')?.remove();
-        }
+        const downloadSong = async () => {
+          const videoId = getVideoId();
+          const track = readTrackSnapshot();
+          if (!videoId || !track) {
+            showToast('No track to download');
+            return;
+          }
+          showToast('Downloading...');
+          try {
+            const path = await invoke('download_track', {
+              payload: {
+                videoId,
+                title: track.title,
+                artist: track.artist,
+                album: track.album,
+              },
+            });
+            showToast('Downloaded: ' + path.split(/[/\\]/).pop());
+          } catch (e) {
+            showToast('Download failed: ' + e);
+          }
+        };
 
-        btn.addEventListener('click', showDialog);
-        document.body.appendChild(btn);
+        const injectMenuItem = () => {
+          const popup = document.querySelector('ytmusic-menu-popup-renderer tp-yt-paper-listbox');
+          if (!popup || popup.querySelector('.vt-dl-menu-item')) return;
+
+          const track = readTrackSnapshot();
+          if (!track) return;
+
+          const item = document.createElement('div');
+          item.className = 'vt-dl-menu-item';
+          item.setAttribute('role', 'option');
+          item.setAttribute('tabindex', '-1');
+          item.innerHTML = `
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            <span>Download Track</span>
+          `;
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            popup.closest('ytmusic-popup-container')?.remove();
+            downloadSong();
+          });
+          popup.prepend(item);
+        };
+
+        const observer = new MutationObserver(() => {
+          const popup = document.querySelector('ytmusic-menu-popup-renderer tp-yt-paper-listbox');
+          if (popup && !popup.querySelector('.vt-dl-menu-item')) {
+            injectMenuItem();
+          }
+        });
+
+        const waitForPopup = setInterval(() => {
+          const container = document.querySelector('ytmusic-popup-container');
+          if (container) {
+            clearInterval(waitForPopup);
+            observer.observe(container, { childList: true, subtree: true });
+          }
+        }, 1000);
 
         return () => {
-          btn.remove();
-          closeDialog();
+          clearInterval(waitForPopup);
+          observer.disconnect();
           style.remove();
+          document.querySelectorAll('.vt-dl-menu-item').forEach((el) => el.remove());
         };
       },
     },
