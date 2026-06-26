@@ -1,0 +1,143 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Build mode"
+        required: true
+        type: choice
+        options:
+          - ci
+          - release
+        default: ci
+      tag:
+        description: "Release tag (only for release mode, e.g. v1.0.0)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Windows
+            platform: windows-latest
+            rust-target: ""
+          - label: macOS
+            platform: macos-latest
+            rust-target: aarch64-apple-darwin
+          - label: Linux
+            platform: ubuntu-22.04
+            rust-target: ""
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            libssl-dev \
+            libgtk-3-dev
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        run: pnpm run build
+
+      - name: Check Rust
+        run: cargo check --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Test Rust
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Test frontend
+        run: pnpm run test
+
+      # Release-only steps below
+
+      - name: Create draft release
+        if: inputs.mode == 'release' && matrix.platform == 'ubuntu-22.04'
+        id: create
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const tag = '${{ inputs.tag }}';
+            const { owner, repo } = context.repo;
+            const releases = await github.rest.repos.listReleases({ owner, repo, per_page: 100 });
+            const existing = releases.data.find((r) => r.tag_name === tag);
+            if (existing) {
+              await github.rest.repos.updateRelease({
+                owner, repo,
+                release_id: existing.id,
+                name: `VoltYTM ${tag}`,
+                draft: true,
+                prerelease: tag.includes('-'),
+              });
+              return existing.id;
+            }
+            const created = await github.rest.repos.createRelease({
+              owner, repo,
+              tag_name: tag,
+              name: `VoltYTM ${tag}`,
+              draft: true,
+              prerelease: tag.includes('-'),
+              body: 'See CHANGELOG.md for release notes.',
+            });
+            return created.data.id;
+
+      - name: Build and upload Tauri bundle
+        if: inputs.mode == 'release'
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          releaseId: ${{ steps.create.outputs.result || '' }}
+          releaseDraft: true
+          prerelease: ${{ contains(inputs.tag, '-') }}
+          args: ${{ matrix.platform == 'macos-latest' && '--target aarch64-apple-darwin' || '' }}

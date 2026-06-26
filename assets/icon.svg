@@ -4,9 +4,9 @@
       <stop stop-color="#FF632F"/>
       <stop offset="1" stop-color="#DC148C"/>
     </linearGradient>
-    <linearGradient id="bolt" x1="420" y1="280" x2="620" y2="760" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bolt" x1="400" y1="240" x2="640" y2="800" gradientUnits="userSpaceOnUse">
       <stop stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.8"/>
     </linearGradient>
     <filter id="shadow" x="78" y="90" width="868" height="868" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
       <feFlood flood-opacity="0" result="BackgroundImageFix"/>
@@ -21,7 +21,8 @@
   </defs>
   <g filter="url(#shadow)">
     <circle cx="512" cy="512" r="410" fill="url(#bg)"/>
-    <circle cx="512" cy="512" r="402" stroke="white" stroke-opacity="0.2" stroke-width="8"/>
+    <circle cx="512" cy="512" r="402" stroke="white" stroke-opacity="0.15" stroke-width="6"/>
   </g>
-  <path d="M580 280L380 540H480L440 744L660 460H548L580 280Z" fill="url(#bolt)" stroke="white" stroke-opacity="0.3" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M560 280L360 544H464L432 744L640 464H536L560 280Z" fill="url(#bolt)"/>
+  <path d="M560 280L360 544H464L432 744L640 464H536L560 280Z" stroke="white" stroke-opacity="0.3" stroke-width="4" stroke-linejoin="round"/>
 </svg>
