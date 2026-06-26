@@ -3,16 +3,13 @@ name: Build
 on:
   workflow_dispatch:
     inputs:
-      mode:
-        description: "Build mode"
-        required: true
-        type: choice
-        options:
-          - ci
-          - release
-        default: ci
+      release:
+        description: "Create a release draft (tag required)"
+        required: false
+        type: boolean
+        default: false
       tag:
-        description: "Release tag (only for release mode, e.g. v1.0.0)"
+        description: "Release tag (e.g. v1.0.0, only used if 'release' is checked)"
         required: false
         type: string
 
@@ -94,12 +91,13 @@ jobs:
       # Release-only steps below
 
       - name: Create draft release
-        if: inputs.mode == 'release' && matrix.platform == 'ubuntu-22.04'
+        if: inputs.release && matrix.platform == 'ubuntu-22.04'
         id: create
         uses: actions/github-script@v8
         with:
           script: |
             const tag = '${{ inputs.tag }}';
+            if (!tag) { core.setFailed('Tag is required for release'); return; }
             const { owner, repo } = context.repo;
             const releases = await github.rest.repos.listReleases({ owner, repo, per_page: 100 });
             const existing = releases.data.find((r) => r.tag_name === tag);
@@ -124,7 +122,7 @@ jobs:
             return created.data.id;
 
       - name: Build and upload Tauri bundle
-        if: inputs.mode == 'release'
+        if: inputs.release
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
