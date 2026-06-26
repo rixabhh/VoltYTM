@@ -309,6 +309,180 @@
     return _trackCache;
   };
 
+  // Toolbar: single floating bar for all VoltYTM controls
+  const TOOLBAR_ID = 'voltytm-toolbar';
+  const ensureToolbar = () => {
+    let bar = document.getElementById(TOOLBAR_ID);
+    if (bar) return bar;
+
+    const style = document.createElement('style');
+    style.id = 'voltytm-toolbar-style';
+    style.textContent = `
+      #${TOOLBAR_ID} {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        gap: 2px;
+        z-index: 99990;
+        background: rgba(20,22,25,0.85);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        padding: 3px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        font-family: system-ui, -apple-system, sans-serif;
+        transition: opacity 0.3s;
+      }
+      #${TOOLBAR_ID}:empty { display: none; }
+      #${TOOLBAR_ID} button {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: transparent;
+        border: none;
+        color: #ccc;
+        font-size: 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+        position: relative;
+      }
+      #${TOOLBAR_ID} button:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+      }
+      #${TOOLBAR_ID} button.active {
+        background: rgba(79,209,179,0.2);
+        color: #4fd1b3;
+      }
+      #${TOOLBAR_ID} button:focus-visible {
+        outline: 2px solid #4fd1b3;
+        outline-offset: 1px;
+      }
+      #${TOOLBAR_ID} .vt-sep {
+        width: 1px;
+        height: 20px;
+        background: rgba(255,255,255,0.1);
+        margin: 7px 2px;
+      }
+      #${TOOLBAR_ID} .vt-badge {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4fd1b3;
+        display: none;
+      }
+      #${TOOLBAR_ID} button.active .vt-badge { display: block; }
+      .vt-panel {
+        position: fixed;
+        top: 56px;
+        right: 12px;
+        background: rgba(20,22,25,0.95);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        padding: 12px;
+        z-index: 99991;
+        backdrop-filter: blur(16px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+        font-family: system-ui, sans-serif;
+        color: #e1e1e1;
+        font-size: 13px;
+        display: none;
+        min-width: 180px;
+      }
+      .vt-panel.visible { display: block; }
+      .vt-panel h4 {
+        margin: 0 0 8px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #888;
+      }
+      .vt-toast {
+        position: fixed;
+        top: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.88);
+        color: #fff;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: system-ui, sans-serif;
+        z-index: 99999;
+        border: 1px solid rgba(255,255,255,0.1);
+        animation: vtToast 2.5s forwards;
+        pointer-events: none;
+      }
+      @keyframes vtToast {
+        0% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+        10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        75% { opacity: 1; }
+        100% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+      }
+    `;
+    document.head.appendChild(style);
+
+    bar = document.createElement('div');
+    bar.id = TOOLBAR_ID;
+    document.body.appendChild(bar);
+    return bar;
+  };
+
+  const addToolbarButton = (id, icon, title, onClick) => {
+    const bar = ensureToolbar();
+    const btn = document.createElement('button');
+    btn.id = `vt-tb-${id}`;
+    btn.title = title;
+    btn.setAttribute('aria-label', title);
+    btn.innerHTML = icon;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onClick(btn);
+    });
+    bar.appendChild(btn);
+    return btn;
+  };
+
+  const addToolbarSep = () => {
+    const bar = ensureToolbar();
+    const sep = document.createElement('div');
+    sep.className = 'vt-sep';
+    bar.appendChild(sep);
+  };
+
+  const showPanel = (panelId) => {
+    document.querySelectorAll('.vt-panel').forEach((p) => {
+      if (p.id !== panelId) p.classList.remove('visible');
+    });
+    const panel = document.getElementById(panelId);
+    if (panel) panel.classList.toggle('visible');
+  };
+
+  const hideAllPanels = () => {
+    document.querySelectorAll('.vt-panel').forEach((p) => p.classList.remove('visible'));
+  };
+
+  const showToast = (msg) => {
+    const t = document.createElement('div');
+    t.className = 'vt-toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2600);
+  };
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest(`#${TOOLBAR_ID}`) && !e.target.closest('.vt-panel')) {
+      hideAllPanels();
+    }
+  });
+
   const rendererPlugins = {
     lastfm: {
       start(config) {
