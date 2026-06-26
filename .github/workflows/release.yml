@@ -109,14 +109,14 @@ jobs:
             libssl-dev \
             libgtk-3-dev
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -129,7 +129,7 @@ jobs:
           workspaces: src-tauri -> target
 
       - name: Install dependencies
-        run: corepack pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build and upload Tauri bundle
         uses: tauri-apps/tauri-action@v1
