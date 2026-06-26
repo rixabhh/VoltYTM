@@ -8,7 +8,6 @@ mod proxy;
 mod session;
 mod shortcuts;
 mod tray;
-mod updater;
 mod window;
 
 use tauri::Manager;
@@ -26,7 +25,6 @@ pub fn run(start_minimized: bool) {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_autostart::init(
@@ -93,12 +91,6 @@ pub fn run(start_minimized: bool) {
             if let Err(e) = session::initialize(&handle) {
                 tracing::warn!("Session init failed: {e}");
             }
-
-            // Background update check
-            let updater_handle = handle.clone();
-            tauri::async_runtime::spawn(async move {
-                updater::check_for_updates(updater_handle).await;
-            });
 
             // Close to tray — persist cookies and hide window
             if let Some(window) = handle.get_webview_window("main") {

@@ -17,8 +17,6 @@
     "store:allow-clear",
     "store:allow-load",
     "store:allow-save",
-    "updater:allow-check",
-    "updater:allow-download-and-install",
     "http:default",
     "os:allow-os-type",
     "os:allow-version",
