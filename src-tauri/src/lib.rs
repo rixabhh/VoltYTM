@@ -11,7 +11,7 @@ mod tray;
 mod updater;
 mod window;
 
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Listener, Manager};
 use tracing_subscriber::EnvFilter;
 
 pub fn run(start_minimized: bool) {
