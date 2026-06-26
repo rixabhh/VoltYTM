@@ -11,7 +11,7 @@ mod tray;
 mod updater;
 mod window;
 
-use tauri::{AppHandle, Listener, Manager};
+use tauri::{AppHandle, Manager};
 use tracing_subscriber::EnvFilter;
 
 pub fn run(start_minimized: bool) {
@@ -105,22 +105,18 @@ pub fn run(start_minimized: bool) {
             });
 
             // Close to tray instead of quitting
-            let handle_clone = handle.clone();
-            handle.listen("tauri://close-requested", move |_event| {
-                if let Some(window) = handle_clone.get_webview_window("main") {
-                    let _ = window.hide();
-                }
-            });
-
-            // Persist cookies on close
             let close_handle = handle.clone();
-            handle.listen("tauri://close-requested", move |_event| {
-                let h = close_handle.clone();
-                tauri::async_runtime::spawn(async move {
-                    if let Err(e) = session::persist_cookies_for_app(&h).await {
-                        tracing::warn!("Failed to persist cookies on close: {e}");
-                    }
-                });
+            handle.on_window_event("main", move |window, event| {
+                if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                    api.prevent_close();
+                    let _ = window.hide();
+                    let h = close_handle.clone();
+                    tauri::async_runtime::spawn(async move {
+                        if let Err(e) = session::persist_cookies_for_app(&h).await {
+                            tracing::warn!("Failed to persist cookies on close: {e}");
+                        }
+                    });
+                }
             });
 
             tracing::info!("VoltYTM started successfully");
