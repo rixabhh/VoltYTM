@@ -2,6 +2,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 const APP_NAME: &str = "VoltYTM";
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 const APP_ID: &str = "com.rixabhh.voltytm";
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -14,8 +15,8 @@ pub fn is_autostart_enabled() -> bool {
     {
         use winreg::enums::*;
         use winreg::RegKey;
-        let HKCU = RegKey::predef(HKEY_CURRENT_USER);
-        if let Ok(key) = HKCU.open_subkey_with_flags(
+        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+        if let Ok(key) = hkcu.open_subkey_with_flags(
             r"Software\Microsoft\Windows\CurrentVersion\Run",
             KEY_READ,
         ) {
@@ -48,8 +49,8 @@ pub fn enable_autostart() -> Result<()> {
         use winreg::enums::*;
         use winreg::RegKey;
         let exe = std::env::current_exe()?.to_string_lossy().to_string();
-        let HKCU = RegKey::predef(HKEY_CURRENT_USER);
-        let (key, _) = HKCU.create_subkey_with_flags(
+        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+        let (key, _) = hkcu.create_subkey_with_flags(
             r"Software\Microsoft\Windows\CurrentVersion\Run",
             KEY_ALL_ACCESS,
         )?;
@@ -117,8 +118,8 @@ pub fn disable_autostart() -> Result<()> {
     {
         use winreg::enums::*;
         use winreg::RegKey;
-        let HKCU = RegKey::predef(HKEY_CURRENT_USER);
-        if let Ok(key) = HKCU.open_subkey_with_flags(
+        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+        if let Ok(key) = hkcu.open_subkey_with_flags(
             r"Software\Microsoft\Windows\CurrentVersion\Run",
             KEY_ALL_ACCESS,
         ) {

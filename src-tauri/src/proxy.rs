@@ -35,10 +35,6 @@ pub struct ProxyStatus {
 }
 
 impl AdblockProxy {
-    pub fn proxy_url(&self) -> Url {
-        self.url.clone()
-    }
-
     pub fn status(&self) -> ProxyStatus {
         ProxyStatus {
             enabled: true,
