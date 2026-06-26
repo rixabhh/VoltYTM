@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: "Create a release draft (tag required)"
+        description: "Create a release draft"
         required: false
         type: boolean
         default: false
       tag:
-        description: "Release tag (e.g. v1.0.0, only used if 'release' is checked)"
+        description: "Release tag (e.g. v1.0.0)"
         required: false
         type: string
 
@@ -22,44 +22,32 @@ env:
 jobs:
   create-release:
     name: Create release
-    if: inputs.release
+    if: ${{ github.event.inputs.release == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       release_id: ${{ steps.create.outputs.result }}
     steps:
-      - name: Create or update draft release
+      - name: Create draft release
         id: create
         uses: actions/github-script@v8
         with:
           script: |
-            const tag = '${{ inputs.tag }}';
-            if (!tag) { core.setFailed('Tag is required for release'); return; }
+            const tag = '${{ github.event.inputs.tag }}';
+            if (!tag) { core.setFailed('Tag is required'); return; }
             const { owner, repo } = context.repo;
             const releases = await github.rest.repos.listReleases({ owner, repo, per_page: 100 });
             const existing = releases.data.find((r) => r.tag_name === tag);
             if (existing) {
-              await github.rest.repos.updateRelease({
-                owner, repo,
-                release_id: existing.id,
-                name: `VoltYTM ${tag}`,
-                draft: true,
-                prerelease: tag.includes('-'),
-              });
+              await github.rest.repos.updateRelease({ owner, repo, release_id: existing.id, name: `VoltYTM ${tag}`, draft: true });
               return existing.id;
             }
-            const created = await github.rest.repos.createRelease({
-              owner, repo,
-              tag_name: tag,
-              name: `VoltYTM ${tag}`,
-              draft: true,
-              prerelease: tag.includes('-'),
-              body: 'See CHANGELOG.md for release notes.',
-            });
+            const created = await github.rest.repos.createRelease({ owner, repo, tag_name: tag, name: `VoltYTM ${tag}`, draft: true, body: 'See CHANGELOG.md for release notes.' });
             return created.data.id;
 
   build:
-    name: ${{ matrix.label }}
-    needs: ${{ inputs.release && 'create-release' || null }}
+    name: Build (${{ matrix.label }})
+    needs: create-release
+    if: ${{ always() && (needs.create-release.result == 'success' || github.event.inputs.release != 'true') }}
     strategy:
       fail-fast: false
       matrix:
@@ -73,9 +61,7 @@ jobs:
           - label: Linux
             platform: ubuntu-22.04
             rust-target: ""
-
     runs-on: ${{ matrix.platform }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -84,13 +70,7 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libxdo-dev \
-            libssl-dev \
-            libgtk-3-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev libgtk-3-dev
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -126,15 +106,15 @@ jobs:
       - name: Test frontend
         run: pnpm run test
 
-      - name: Build and upload Tauri bundle
-        if: inputs.release
+      - name: Build and upload bundle
+        if: ${{ github.event.inputs.release == 'true' }}
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          releaseId: ${{ needs.create-release.outputs.release_id || '' }}
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           releaseDraft: true
-          prerelease: ${{ contains(inputs.tag, '-') }}
+          prerelease: ${{ contains(github.event.inputs.tag, '-') }}
           args: ${{ matrix.platform == 'macos-latest' && '--target aarch64-apple-darwin' || '' }}
