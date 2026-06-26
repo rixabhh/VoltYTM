@@ -2499,6 +2499,8 @@
       },
     },
   };
+
+  const loadRendererPlugins = async () => {
     try {
       const config = await invoke('get_config', {});
       const pluginConfigs = config?.plugins ?? {};

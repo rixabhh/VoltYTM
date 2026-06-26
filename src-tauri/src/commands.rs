@@ -610,7 +610,7 @@ pub(crate) async fn read_config(app: &AppHandle) -> Result<Value, String> {
     }
 }
 
-async fn write_config(app: &AppHandle, config: &Value) -> Result<(), String> {
+pub(crate) async fn write_config(app: &AppHandle, config: &Value) -> Result<(), String> {
     let path = config_path(app)?;
     if let Some(parent) = path.parent() {
         tokio::fs::create_dir_all(parent)
